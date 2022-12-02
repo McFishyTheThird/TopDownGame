@@ -16,6 +16,7 @@ Texture2D gameOver = Raylib.LoadTexture("GameOver.png");
 Texture2D startScreen = Raylib.LoadTexture("Thetruedoomsotry.png");
 int V = 0;
 int E = 0;
+int B = 0;
 int plusH = 0;
 int hpExtra = 0;
 Color pantone448C = new Color(74, 65, 42, 255);
@@ -34,6 +35,8 @@ Rectangle bossHealthPhase2 = new Rectangle (475, 10, 150, 10);
 Rectangle bossHealthLostPhase2 = new Rectangle (475, 10, 150, 10);
 Rectangle bossHealthPhaseBezos = new Rectangle (320, 10, 150, 10);
 Rectangle bossHealthLostPhaseBezos = new Rectangle (320, 10, 150, 10);
+Rectangle bossHealthPhaseBezosChrist = new Rectangle (320, 10, 465, 10);
+Rectangle bossHealthLostPhaseBezosChrist = new Rectangle (320, 10, 465, 10);
 Rectangle stamina = new Rectangle (490, 575, 300, 20);
 Texture2D miniBossProjectile = Raylib.LoadTexture("MiniBossProjectile.png");
 Rectangle staminaLost = new Rectangle (490, 575, 300, 20);
@@ -47,14 +50,15 @@ Texture2D enemy1 = Raylib.LoadTexture("Monster1.png");
 Texture2D enemy2 = Raylib.LoadTexture("Monster2.png");
 Texture2D miniBoss = Raylib.LoadTexture("Monster3.png");
 Texture2D bossNuk = Raylib.LoadTexture("BossProjectile2.png");
-Texture2D bossNukBoom = Raylib.LoadTexture("Nuk_Explosion.png");
 Texture2D bossAmazonClosed = Raylib.LoadTexture("BossProjectile2Box.png");
 Texture2D bossAmazonOpen = Raylib.LoadTexture("BossProjectile2Box2.png");
 Texture2D bossLaser = Raylib.LoadTexture("Laser.png");
+Texture2D bossLaserWarning = Raylib.LoadTexture("WarningLaser.png");
 Rectangle playerRect = new Rectangle(370, 270, avatarImage.width, avatarImage.height);
 List<Rectangle> enemies = new List<Rectangle>();
 List<Rectangle> miniBossProjectiles = new List<Rectangle>();
 List<Rectangle> bossProjectiles = new List<Rectangle>();
+List<Rectangle> bossNuksBox = new List<Rectangle>();
 List<Rectangle> bossNuks = new List<Rectangle>();
 List<float> deleteTexts = new List<float>();
 List<string> text = new List<string>();
@@ -99,9 +103,12 @@ for (int i = 0; i < 3; i++)
 for (int i = 0; i < 3; i++)
 {
     X = generator.Next(10, 751-bossNuk.width);
-    bossNuks.Add(new Rectangle(X, 0-bossAmazonClosed.width, bossNuk.width, bossNuk.height));
+    bossNuksBox.Add(new Rectangle(X, 0-bossAmazonClosed.width, bossNuk.width, bossNuk.height));
 }
-
+for (int i = 0; i < 3; i++)
+{
+    bossNuks.Add(new Rectangle(bossNuksBox[i].x, -1, bossNuk.width, bossNuk.height));
+}
 Texture2D goldDude = Raylib.LoadTexture("GoldenDuumguyB).png");
 enemies.Add(new Rectangle(X, Y, enemy1.width, enemy1.height));
 Rectangle goldDudePlace = new Rectangle(X, Y, goldDude.width, goldDude.height);
@@ -112,6 +119,7 @@ Rectangle armorPackPlace = new Rectangle(X, Y, armorPack.width, armorPack.height
 Rectangle energyPackPlace = new Rectangle(X, Y, energyPack.width, energyPack.height);
 Rectangle playerProjectilePlace = new Rectangle(0, 0, playerProjectile.width, playerProjectile.height);
 Rectangle enemy2Place = new Rectangle(X, Y, 50, 50);
+Rectangle bossLaserPlace = new Rectangle(800-bossLaser.width, 0, bossLaser.width, bossLaser.height);
 Rectangle bigDaddyDoomguyPlace = new Rectangle(-805, 0, bigDaddyDoomguy.width, bigDaddyDoomguy.height);
 int powerPack = generator.Next(1, 201);
 int healthyPack = generator.Next(1, 201);
@@ -128,8 +136,10 @@ float e2Speed = 1;
 float energySpawn = 0;
 float veggieSpawn = 0;
 float armorSpawn = 0;
-float bossReload = 0;
-string currentScene = "start"; //start, game, end
+float bossReload = 0; 
+float bossNukSpawn = 0;
+float bossLaserSpawn = 0;
+string currentScene = "start"; //start, game, end, victory
 while(Raylib.WindowShouldClose() == false)
 {
     //Scene Game
@@ -201,7 +211,7 @@ while(Raylib.WindowShouldClose() == false)
                 {
                     Rectangle rect = bossProjectiles[i];
                     bossReload += Raylib.GetFrameTime();
-                    if (bossReload > 1.66f)
+                    if (bossReload > 1.66f && E != 5)
                     {  
                         if(rect.x == -1)
                         {
@@ -211,19 +221,19 @@ while(Raylib.WindowShouldClose() == false)
                             bossReload = 0;
                         }
                     }
-                    if(rect.x > 800)
+                    if(rect.x > 800 || E == 5)
                     {
                         rect.x = -1;
                         Y = generator.Next(0,551);
                         rect.y = Y;
                     }
-                    if (rect.x > -1)
+                    if (rect.x > -1 && E != 5)
                     {
                         rect.x += 5;
                     }
-                    if(Raylib.CheckCollisionRecs(playerRect, rect))
+                    if(Raylib.CheckCollisionRecs(playerRect, rect) && E != 5)
                     {
-                        health.width -= 3;
+                        health.width -= 2;
                     }
                     bossProjectiles[i] = rect;
                 }
@@ -250,7 +260,6 @@ while(Raylib.WindowShouldClose() == false)
             {
                 Raylib.PlayMusicStream(bigAngryDoomguyTheme);
                 Raylib.UpdateMusicStream(bigAngryDoomguyTheme);
-                
             }
             if (bossHealthPhase2.width < 75 && plusH == 1)
             {
@@ -283,6 +292,11 @@ while(Raylib.WindowShouldClose() == false)
             {
                 E++;
             }
+            if(bossHealthPhaseBezos.width < 0 && E == 7)
+            {
+                Raylib.PlayMusicStream(jesusBezosThemeSong);
+                Raylib.UpdateMusicStream(jesusBezosThemeSong);
+            }
             if (Raylib.CheckCollisionRecs(playerProjectilePlace, bigDaddyDoomguyPlace))
             {
                 if (E == 0)
@@ -307,10 +321,67 @@ while(Raylib.WindowShouldClose() == false)
                     totalDamage = 0;
 
                 }
+                if (E == 7)
+                {
+                    bossHealthPhaseBezosChrist.width -= 2*totalDamage;
+                    playerProjectilePlace.y = playerRect.y;
+                    playerProjectilePlace.x = playerRect.x;
+                    totalDamage = 0;
+                }
             }
+            //no touch personal space
             if (Raylib.CheckCollisionRecs(playerRect, bigDaddyDoomguyPlace))
             {
                 health.width -= 9999;
+            }
+            //Second phase laser
+            if (bossHealthPhase1.width < 0  && E != 5)
+            {
+                bossLaserSpawn += Raylib.GetFrameTime();
+                if (Raylib.CheckCollisionRecs(playerRect, bossLaserPlace) && bossLaserSpawn > 3)
+                {
+                    health.width -= 3;
+                }
+                if (bossLaserSpawn > 1 && bossLaserSpawn < 2)
+                {
+                    bossLaserPlace.x = playerRect.x;
+                }
+            }
+            //Jeff Bezos Amazon nukes
+            if (bossHealthPhase2.width < 0  && E != 5)
+            {
+                for(int i = 0; i < bossNuksBox.Count; i++)
+                {
+                    Rectangle rect = bossNuksBox[i];
+                    if (rect.y < 1)
+                    {
+                        rect.y++;
+                    }
+                    bossNuksBox[i] = rect;
+                    for(int k = 0; k < bossNuks.Count; k++)
+                    {
+                        Rectangle rect2 = bossNuks[i];
+                        if (rect.y == 1 && B == 0)
+                        {
+                            rect2.y++;
+                            B++;
+                        }
+                        if (rect2.y > -1 && rect2.y < 600-bossNuk.width)
+                        {
+                            rect2.y += 0.75f;
+                        }
+                        bossNuks[i] = rect2;
+                    }
+                }
+
+            }
+            if (bossLaserSpawn > 4 || E == 5)
+            {
+                bossLaserSpawn = 0;
+            }
+            if (bossHealthPhaseBezosChrist.width < 0)
+            {
+                currentScene = "victory";
             }
         }
         //Powerup Theme Song
@@ -953,11 +1024,11 @@ while(Raylib.WindowShouldClose() == false)
             {
                 bigDaddyDoomguyPlace.x ++;
             }
-            if(bigDaddyDoomguyPlace.x == -200)
+            else if(bigDaddyDoomguyPlace.x == -200)
             {
                 foreach(Rectangle rect in bossProjectiles)
                 {
-                    if(rect.x > -1)
+                    if(rect.x > -1 && E != 5)
                     {
                         Raylib.DrawTexture(bossProjectile, (int)rect.x, (int)rect.y, Color.WHITE);
                     }
@@ -968,12 +1039,12 @@ while(Raylib.WindowShouldClose() == false)
             {
                 Raylib.DrawText("Big Daddy Doomguy Phase: 1", 400, 22, 20, Color.ORANGE);
             }
-            if (bossHealthPhase2.width > 0 && E == 1)
+            else if (bossHealthPhase2.width > 0 && E == 1)
             {
                 bigDaddyDoomguy = Raylib.LoadTexture("BigBossPhase2.png");
                 E++;
             }
-            if (bossHealthPhase2.width > 0 && E == 2)
+            else if (bossHealthPhase2.width > 0 && E == 2)
             {
                 Raylib.DrawText("Big Daddy Doomguy Phase: 2", 400, 22, 20, Color.ORANGE);
                 if (deleteTexts[3] < 3)
@@ -985,12 +1056,12 @@ while(Raylib.WindowShouldClose() == false)
                     deleteTexts[3] += Raylib.GetFrameTime();
                 }
             }
-            if (bossHealthPhaseBezos.width > 0 && E == 3)
+            else if (bossHealthPhaseBezos.width > 0 && E == 3)
             {
                 bigDaddyDoomguy = Raylib.LoadTexture("BigBossPhaseBezos.png");
                 E++;
             }
-            if (bossHealthPhaseBezos.width > 0 && E == 4)
+            else if (bossHealthPhaseBezos.width > 0 && E == 4)
             {
                 Raylib.DrawText("Big Daddy Doomguy Phase: Bezos", 400, 22, 20, Color.ORANGE);
                 if (deleteTexts[4] < 3)
@@ -1014,7 +1085,7 @@ while(Raylib.WindowShouldClose() == false)
                     deleteTexts[5] += Raylib.GetFrameTime();
                 }
             }
-            if (bossHealthPhaseBezos.width < 0 && E == 5)
+            else if (bossHealthPhaseBezos.width < 0 && E == 5)
             {
                 if (deleteTexts[6] < 3)
                 {
@@ -1030,12 +1101,12 @@ while(Raylib.WindowShouldClose() == false)
                     Console.WriteLine(E);
                 }
             }
-            if (bossHealthPhaseBezos.width < 0 && E == 6)
+            else if (bossHealthPhaseBezos.width < 0 && E == 6)
             {
                 bigDaddyDoomguy = Raylib.LoadTexture("BigBossPhaseJesusBezosPhase.png");
                 E++;
             }
-            if (bossHealthPhaseBezos.width < 0 && E == 7)
+            else if (bossHealthPhaseBezos.width < 0 && E == 7)
             {
                 Raylib.DrawText("Bezos Christ Our Lord And Saviour", 400, 22, 20, Color.ORANGE);
                 if (deleteTexts[7] < 3)
@@ -1047,13 +1118,56 @@ while(Raylib.WindowShouldClose() == false)
                     deleteTexts[7] += Raylib.GetFrameTime();
                 }
             }
-            Raylib.DrawRectangleRec(bossHealthLostPhase1, Color.BLACK);
-            Raylib.DrawRectangleRec(bossHealthPhase1, Color.RED);
-            Raylib.DrawRectangleRec(bossHealthLostPhase2, Color.BLACK);
-            Raylib.DrawRectangleRec(bossHealthPhase2, Color.RED);
-            Raylib.DrawRectangleRec(bossHealthLostPhaseBezos, Color.BLACK);
-            Raylib.DrawRectangleRec(bossHealthPhaseBezos, Color.RED);
-
+            if(bossHealthPhaseBezos.width > 0)
+            {
+                Raylib.DrawRectangleRec(bossHealthLostPhase1, Color.BLACK);
+                Raylib.DrawRectangleRec(bossHealthPhase1, Color.RED);
+                Raylib.DrawRectangleRec(bossHealthLostPhase2, Color.BLACK);
+                Raylib.DrawRectangleRec(bossHealthPhase2, Color.RED);
+                Raylib.DrawRectangleRec(bossHealthLostPhaseBezos, Color.BLACK);
+                Raylib.DrawRectangleRec(bossHealthPhaseBezos, Color.RED);
+            }
+            else if(bossHealthPhaseBezos.width < 0 && E == 7)
+            {
+                Raylib.DrawRectangleRec(bossHealthLostPhaseBezosChrist, Color.BLACK);
+                Raylib.DrawRectangleRec(bossHealthPhaseBezosChrist, Color.RED);
+            }
+            if (bossHealthPhase1.width < 0 && bossLaserSpawn > 3 && E != 5)
+            {
+                Raylib.DrawTexture(bossLaser, (int)bossLaserPlace.x, (int)bossLaserPlace.y, Color.WHITE);
+            }
+            foreach (Rectangle rect in bossNuksBox)
+            {
+                if(rect.y < 0)
+                {
+                    Raylib.DrawTexture(bossAmazonClosed, (int)rect.x, (int)rect.y, Color.WHITE);
+                }
+                else if(rect.y >= 0)
+                {
+                    Raylib.DrawTexture(bossAmazonOpen, (int)rect.x, (int)rect.y, Color.WHITE);
+                }
+                if(rect.y == 0)
+                {
+                    Raylib.DrawTexture(bossNuk, (int)rect.x, (int)rect.y, Color.WHITE);
+                }
+            }
+            foreach (Rectangle rect2 in bossNuks)
+            {
+                if(rect2.y > 0)
+                {
+                    Raylib.DrawTexture(bossNuk, (int)rect2.x, (int)rect2.y, Color.WHITE);
+                    Console.WriteLine(600-bossNuk.width);
+                    Console.WriteLine(rect2.y);
+                }
+                if(rect2.y >= 600-bossNuk.width)
+                {
+                    bossNuk = Raylib.LoadTexture("NukExplosion");
+                }
+            }
+            if (bossLaserSpawn > 2 && bossLaserSpawn < 3 && E != 5)
+            {
+                Raylib.DrawTexture(bossLaserWarning, (int)bossLaserPlace.x, (int)bossLaserPlace.y, Color.WHITE);
+            }
         }
 
         //energy/health/armor
@@ -1145,7 +1259,7 @@ while(Raylib.WindowShouldClose() == false)
     {
         //Git gud
         Raylib.DrawTexture(gameOver, 0, 0, Color.WHITE);
-        Raylib.DrawText("You Lost", 300, 500, 50, oxBlood);
+        Raylib.DrawText("Git gud nub >:P", 300, 500, 50, oxBlood);
         if (Raylib.IsKeyDown(KeyboardKey.KEY_TAB))
         {
             points = 0;
@@ -1154,6 +1268,41 @@ while(Raylib.WindowShouldClose() == false)
             currentScene = "start";
             mode = "Normal";
             stamina.width = 300;
+            bigDaddyDoomguy = Raylib.LoadTexture("bigBoss.png");
+            bigDaddyDoomguyPlace.x = -805;
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                Rectangle rect = enemies[i];
+                X = generator.Next(50, 771);
+                Y = generator.Next(50, 571);
+                rect.y = Y;
+                rect.x = X;
+                enemies[i]=rect;
+            }
+            X = generator.Next(1, 771);
+            Y = generator.Next(1, 571);
+            if (X == Raylib.CheckCollisionRecs(playerRect, goldDudePlace) || Y == Raylib.CheckCollisionRecs(playerRect, goldDudePlace))
+            {
+            X = generator.Next(1, 801);
+            Y = generator.Next(1, 601);  
+            }
+            goldDudePlace.y = Y;
+            goldDudePlace.x = X;
+        }
+    }
+    else if(currentScene == "victory")
+    {
+        //Git gud
+        if (Raylib.IsKeyDown(KeyboardKey.KEY_TAB))
+        {
+            points = 0;
+            projectileSpeed = 0.75f;
+            health.width = 300;
+            currentScene = "start";
+            mode = "Normal";
+            stamina.width = 300;
+            bigDaddyDoomguy = Raylib.LoadTexture("bigBoss.png");
+            bigDaddyDoomguyPlace.x = -805;
             for (int i = 0; i < enemies.Count; i++)
             {
                 Rectangle rect = enemies[i];
