@@ -1,5 +1,5 @@
 ﻿using Raylib_cs;
-Raylib.InitWindow(800, 600, "Williams Crinchtopia");
+Raylib.InitWindow(800, 600, "Epic Doom game");
 Raylib.SetTargetFPS(100);
 Raylib.InitAudioDevice();
 Texture2D avatarImage = Raylib.LoadTexture("ActualTrueDoomguy.png");
@@ -17,12 +17,13 @@ Texture2D startScreen = Raylib.LoadTexture("Thetruedoomsotry.png");
 int V = 0;
 int E = 0;
 int B = 0;
+int NT = 0;
 int plusH = 0;
 int hpExtra = 0;
 Color pantone448C = new Color(74, 65, 42, 255);
 Color arsenik = new Color(59, 68, 75, 255);
 Color oxBlood = new Color(74, 4, 4, 255);
-int points = 69;
+int points = 0;
 Random generator = new Random ();
 int damage = generator.Next(1,3);
 Rectangle health = new Rectangle (10, 10, 300, 30);
@@ -50,6 +51,7 @@ Texture2D enemy1 = Raylib.LoadTexture("Monster1.png");
 Texture2D enemy2 = Raylib.LoadTexture("Monster2.png");
 Texture2D miniBoss = Raylib.LoadTexture("Monster3.png");
 Texture2D bossNuk = Raylib.LoadTexture("BossProjectile2.png");
+Texture2D bossNukBoom = Raylib.LoadTexture("NukExplosion.png");
 Texture2D bossAmazonClosed = Raylib.LoadTexture("BossProjectile2Box.png");
 Texture2D bossAmazonOpen = Raylib.LoadTexture("BossProjectile2Box2.png");
 Texture2D bossLaser = Raylib.LoadTexture("Laser.png");
@@ -58,8 +60,6 @@ Rectangle playerRect = new Rectangle(370, 270, avatarImage.width, avatarImage.he
 List<Rectangle> enemies = new List<Rectangle>();
 List<Rectangle> miniBossProjectiles = new List<Rectangle>();
 List<Rectangle> bossProjectiles = new List<Rectangle>();
-List<Rectangle> bossNuksBox = new List<Rectangle>();
-List<Rectangle> bossNuks = new List<Rectangle>();
 List<float> deleteTexts = new List<float>();
 List<string> text = new List<string>();
 List<int> textPlace = new List<int>();
@@ -100,15 +100,8 @@ for (int i = 0; i < 3; i++)
     bossProjectiles.Add(new Rectangle(-1, Y, bossProjectile.width, bossProjectile.height));
     Y = generator.Next(50, 601);
 }
-for (int i = 0; i < 3; i++)
-{
-    X = generator.Next(10, 751-bossNuk.width);
-    bossNuksBox.Add(new Rectangle(X, 0-bossAmazonClosed.width, bossNuk.width, bossNuk.height));
-}
-for (int i = 0; i < 3; i++)
-{
-    bossNuks.Add(new Rectangle(bossNuksBox[i].x, -1, bossNuk.width, bossNuk.height));
-}
+Rectangle bossNukBox = new Rectangle(X, 0-bossAmazonClosed.width, bossNuk.width, bossNuk.height);
+Rectangle bossNukPlace = new Rectangle(bossNukBox.x, -1, bossNuk.width, bossNuk.height);
 Texture2D goldDude = Raylib.LoadTexture("GoldenDuumguyB).png");
 enemies.Add(new Rectangle(X, Y, enemy1.width, enemy1.height));
 Rectangle goldDudePlace = new Rectangle(X, Y, goldDude.width, goldDude.height);
@@ -349,31 +342,44 @@ while(Raylib.WindowShouldClose() == false)
             }
             //Jeff Bezos Amazon nukes
             if (bossHealthPhase2.width < 0  && E != 5)
-            {
-                for(int i = 0; i < bossNuksBox.Count; i++)
+            {;
+                if (bossNukBox.y < 1 && B != 1)
                 {
-                    Rectangle rect = bossNuksBox[i];
-                    if (rect.y < 1)
+                    bossNukBox.y++;
+                }
+                else if (B == 1)
+                {
+                    bossNukBox.y--;
+                }
+                else if (bossNukBox.y == 0-bossAmazonClosed.width && B == 1)
+                {
+                    B--;
+                }
+                if (bossNukBox.y > 0 && B == 0)
+                {
+                    bossNukPlace.y++;
+                    B++;
+                }
+                if (bossNukPlace.y > -1 && bossNukPlace.y < 600-bossNuk.height)
+                {
+                    bossNukPlace.y += 2;
+                }
+                if(bossNukPlace.y > 599-bossNuk.height && NT == 0)
+                {
+                    NT++;
+                }
+                if (NT == 1)
+                {
+                    bossNukPlace.y = 600-bossNukBoom.height;
+                    bossNukPlace.width = bossNukBoom.width;
+                    bossNukPlace.height = bossNukBoom.height;
+                    if (Raylib.CheckCollisionRecs(playerRect, bossNukPlace))
                     {
-                        rect.y++;
-                    }
-                    bossNuksBox[i] = rect;
-                    for(int k = 0; k < bossNuks.Count; k++)
-                    {
-                        Rectangle rect2 = bossNuks[i];
-                        if (rect.y == 1 && B == 0)
-                        {
-                            rect2.y++;
-                            B++;
-                        }
-                        if (rect2.y > -1 && rect2.y < 600-bossNuk.width)
-                        {
-                            rect2.y += 0.75f;
-                        }
-                        bossNuks[i] = rect2;
+                        health.width -= 25;
+                        NT --;
+                        bossNukPlace.y = -1;
                     }
                 }
-
             }
             if (bossLaserSpawn > 4 || E == 5)
             {
@@ -723,7 +729,7 @@ while(Raylib.WindowShouldClose() == false)
                     else if(Raylib.IsKeyDown(KeyboardKey.KEY_J))
                     {
                         playerProjectilePlace.x -= projectileSpeed;
-                        totalDamage += 0.5f;
+                        totalDamage += 1f;
                     }
                     else if(Raylib.IsKeyDown(KeyboardKey.KEY_L))
                     {
@@ -1098,7 +1104,6 @@ while(Raylib.WindowShouldClose() == false)
                 if (deleteTexts[6] > 3)
                 {
                     E++;
-                    Console.WriteLine(E);
                 }
             }
             else if (bossHealthPhaseBezos.width < 0 && E == 6)
@@ -1136,33 +1141,25 @@ while(Raylib.WindowShouldClose() == false)
             {
                 Raylib.DrawTexture(bossLaser, (int)bossLaserPlace.x, (int)bossLaserPlace.y, Color.WHITE);
             }
-            foreach (Rectangle rect in bossNuksBox)
+            if(bossNukBox.y < 0)
             {
-                if(rect.y < 0)
-                {
-                    Raylib.DrawTexture(bossAmazonClosed, (int)rect.x, (int)rect.y, Color.WHITE);
-                }
-                else if(rect.y >= 0)
-                {
-                    Raylib.DrawTexture(bossAmazonOpen, (int)rect.x, (int)rect.y, Color.WHITE);
-                }
-                if(rect.y == 0)
-                {
-                    Raylib.DrawTexture(bossNuk, (int)rect.x, (int)rect.y, Color.WHITE);
-                }
+                Raylib.DrawTexture(bossAmazonClosed, (int)bossNukBox.x, (int)bossNukBox.y, Color.WHITE);
             }
-            foreach (Rectangle rect2 in bossNuks)
+            else if(bossNukBox.y >= 0)
             {
-                if(rect2.y > 0)
-                {
-                    Raylib.DrawTexture(bossNuk, (int)rect2.x, (int)rect2.y, Color.WHITE);
-                    Console.WriteLine(600-bossNuk.width);
-                    Console.WriteLine(rect2.y);
-                }
-                if(rect2.y >= 600-bossNuk.width)
-                {
-                    bossNuk = Raylib.LoadTexture("NukExplosion");
-                }
+                Raylib.DrawTexture(bossAmazonOpen, (int)bossNukBox.x, (int)bossNukBox.y, Color.WHITE);
+            }
+            if(bossNukBox.y > 0)
+            {
+                Raylib.DrawTexture(bossNuk, (int)bossNukBox.x, (int)bossNukPlace.y, Color.WHITE);
+            }
+            if(NT == 1)
+            {
+                Raylib.DrawTexture(bossNukBoom, (int)bossNukBox.x, (int)bossNukPlace.y, Color.WHITE);
+            }
+            if(bossNukPlace.y > 0 && NT == 0)
+            {
+                Raylib.DrawTexture(bossNuk, (int)bossNukBox.x, (int)bossNukPlace.y, Color.WHITE);
             }
             if (bossLaserSpawn > 2 && bossLaserSpawn < 3 && E != 5)
             {
